@@ -30,6 +30,25 @@ class Producto:
     def set_precio(self, precio):
         self.__precio = precio
 
-    # Representación del producto
+    # Representación para mostrar en pantalla
     def __str__(self):
         return f"ID: {self.__id} | Nombre: {self.__nombre} | Cantidad: {self.__cantidad} | Precio: ${self.__precio:.2f}"
+
+    # Convertir producto a formato archivo
+    def a_linea_archivo(self):
+        return f"{self.__id}|{self.__nombre}|{self.__cantidad}|{self.__precio}"
+
+    # Reconstruir producto desde archivo
+    @staticmethod
+    def desde_linea(linea):
+        try:
+            partes = linea.strip().split("|")
+            return Producto(
+                partes[0],
+                partes[1],
+                int(partes[2]),
+                float(partes[3])
+            )
+        except (ValueError, IndexError):
+            print("⚠ Línea inválida en archivo:", linea.strip())
+            return None
