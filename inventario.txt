@@ -2,3 +2,4 @@
 salchipapa|salchipapa|10|3.0
 hamburguesa|hamburguesa|23|4.25
 pasta|pasta|3|5.0
+cola|cola|5|3.99

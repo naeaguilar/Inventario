@@ -1,90 +1,104 @@
-# Maneja las operaciones del inventario
-
 from modelos.producto import Producto
 
 
 class Inventario:
     def __init__(self):
-        self.archivo = "inventario.txt"
-        self.productos = []
+        # Diccionario principal (clave = ID, valor = Producto)
+        self.productos = {}
         self.cargar_desde_archivo()
 
-    # Cargar productos desde archivo
-    def cargar_desde_archivo(self):
-        try:
-            with open(self.archivo, "r", encoding="utf-8") as f:
-                for linea in f:
-                    producto = Producto.desde_linea(linea)
-                    if producto:
-                        self.productos.append(producto)
-            print("📂 Inventario cargado correctamente.")
-        except FileNotFoundError:
-            print("📁 Archivo no existe. Se creará uno nuevo.")
-            open(self.archivo, "w").close()
-        except PermissionError:
-            print("❌ No tienes permisos para leer el archivo.")
-
-    # Guardar productos en archivo
-    def guardar_en_archivo(self):
-        try:
-            with open(self.archivo, "w", encoding="utf-8") as f:
-                for producto in self.productos:
-                    f.write(producto.a_linea_archivo() + "\n")
-            print("💾 Cambios guardados en archivo.")
-        except PermissionError:
-            print("❌ No tienes permisos para escribir en el archivo.")
-
-    # Añadir producto
+    # ===============================
+    # AGREGAR PRODUCTO
+    # ===============================
     def agregar_producto(self, producto):
-        for p in self.productos:
-            if p.get_id() == producto.get_id():
-                print("⚠️ El ID ya existe.")
-                return
+        if producto.get_id() in self.productos:
+            print("⚠️ El ID ya existe.")
+            return
 
-        self.productos.append(producto)
+        self.productos[producto.get_id()] = producto
         self.guardar_en_archivo()
         print("✅ Producto agregado.")
 
-    # Eliminar producto
+    # ===============================
+    # ELIMINAR PRODUCTO
+    # ===============================
     def eliminar_producto(self, id_producto):
-        for p in self.productos:
-            if p.get_id() == id_producto:
-                self.productos.remove(p)
-                self.guardar_en_archivo()
-                print("🗑 Producto eliminado.")
-                return
-        print("❌ Producto no encontrado.")
+        if id_producto in self.productos:
+            del self.productos[id_producto]
+            self.guardar_en_archivo()
+            print("🗑️ Producto eliminado.")
+        else:
+            print("❌ Producto no encontrado.")
 
-    # Actualizar producto
+    # ===============================
+    # ACTUALIZAR PRODUCTO
+    # ===============================
     def actualizar_producto(self, id_producto, nueva_cantidad=None, nuevo_precio=None):
-        for p in self.productos:
-            if p.get_id() == id_producto:
-                if nueva_cantidad is not None:
-                    p.set_cantidad(nueva_cantidad)
-                if nuevo_precio is not None:
-                    p.set_precio(nuevo_precio)
+        if id_producto in self.productos:
+            producto = self.productos[id_producto]
 
-                self.guardar_en_archivo()
-                print("✅ Producto actualizado.")
-                return
-        print("❌ Producto no encontrado.")
+            if nueva_cantidad is not None:
+                producto.set_cantidad(nueva_cantidad)
 
-    # Buscar producto por nombre
+            if nuevo_precio is not None:
+                producto.set_precio(nuevo_precio)
+
+            self.guardar_en_archivo()
+            print("🔄 Producto actualizado.")
+        else:
+            print("❌ Producto no encontrado.")
+
+    # ===============================
+    # BUSCAR POR NOMBRE (USA LISTA)
+    # ===============================
     def buscar_producto(self, nombre):
-        resultados = []
-        nombre = nombre.lower()
-
-        for p in self.productos:
-            if nombre in p.get_nombre().lower():
-                resultados.append(p)
-
+        resultados = [
+            producto for producto in self.productos.values()
+            if nombre.lower() in producto.get_nombre().lower()
+        ]
         return resultados
 
-    # Mostrar todos
+    # ===============================
+    # MOSTRAR TODOS
+    # ===============================
     def mostrar_productos(self):
         if not self.productos:
             print("Inventario vacío.")
             return
 
-        for p in self.productos:
-            print(p)
+        for producto in self.productos.values():
+            print(producto)
+
+    # ===============================
+    # OBTENER IDS (USA SET)
+    # ===============================
+    def obtener_ids(self):
+        return set(self.productos.keys())
+
+    # ===============================
+    # GUARDAR EN ARCHIVO
+    # ===============================
+    def guardar_en_archivo(self):
+        try:
+            with open("inventario.txt", "w", encoding="utf-8") as archivo:
+                for producto in self.productos.values():
+                    archivo.write(producto.a_linea() + "\n")
+            print("💾 Cambios guardados en archivo.")
+        except PermissionError:
+            print("❌ Error: No se tienen permisos para escribir el archivo.")
+
+    # ===============================
+    # CARGAR DESDE ARCHIVO
+    # ===============================
+    def cargar_desde_archivo(self):
+        try:
+            with open("inventario.txt", "r", encoding="utf-8") as archivo:
+                for linea in archivo:
+                    producto = Producto.desde_linea(linea)
+                    self.productos[producto.get_id()] = producto
+        except FileNotFoundError:
+            # Si no existe, lo crea vacío
+            with open("inventario.txt", "w", encoding="utf-8"):
+                pass
+        except Exception as e:
+            print("❌ Error al cargar archivo:", e)
